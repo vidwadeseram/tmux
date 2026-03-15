@@ -497,8 +497,15 @@ server_child_exited(pid_t pid, int status)
 				log_debug("%%%u exited", wp->id);
 				wp->flags |= PANE_EXITED;
 
-				if (window_pane_destroy_ready(wp))
+				if (options_get_number(wp->options, "protected-pane")) {
+					log_debug("%%%u is protected, scheduling respawn", wp->id);
+					wp->flags &= ~PANE_EXITED;
+					wp->flags &= ~PANE_STATUSREADY;
+					wp->flags &= ~PANE_STATUSDRAWN;
+					server_respawn_pane(wp);
+				} else if (window_pane_destroy_ready(wp)) {
 					server_destroy_pane(wp, 1);
+				}
 				break;
 			}
 		}

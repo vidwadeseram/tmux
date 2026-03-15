@@ -311,6 +311,48 @@ server_unlink_window(struct session *s, struct winlink *wl)
 }
 
 void
+server_respawn_pane(struct window_pane *wp)
+{
+	struct spawn_context	 sc = { 0 };
+	struct session		*s;
+	struct winlink		*wl;
+	char			*cause = NULL;
+
+	s = NULL;
+	RB_FOREACH(s, sessions, &sessions) {
+		wl = winlink_find_by_window(&s->windows, wp->window);
+		if (wl != NULL)
+			break;
+	}
+	if (s == NULL || wl == NULL)
+		return;
+
+	sc.item = NULL;
+	sc.s = s;
+	sc.wl = wl;
+	sc.wp0 = wp;
+	sc.argc = 0;
+	sc.argv = NULL;
+	sc.environ = environ_create();
+	sc.idx = -1;
+	sc.cwd = NULL;
+	sc.flags = SPAWN_RESPAWN | SPAWN_KILL;
+
+	if (spawn_pane(&sc, &cause) == NULL) {
+		log_debug("protected pane respawn failed: %s",
+		    cause != NULL ? cause : "unknown");
+		free(cause);
+	} else {
+		log_debug("%%%u respawned (protected)", wp->id);
+		wp->flags |= PANE_REDRAW;
+		server_redraw_window_borders(wp->window);
+		server_status_window(wp->window);
+	}
+
+	environ_free(sc.environ);
+}
+
+void
 server_destroy_pane(struct window_pane *wp, int notify)
 {
 	struct window		*w = wp->window;

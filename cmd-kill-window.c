@@ -82,6 +82,16 @@ cmd_kill_window_exec(struct cmd *self, struct cmdq_item *item)
 			found = 0;
 			RB_FOREACH(loop, winlinks, &s->windows) {
 				if (loop->window != wl->window) {
+					int has_protected = 0;
+					struct window_pane *twp2;
+					TAILQ_FOREACH(twp2, &loop->window->panes, entry) {
+						if (options_get_number(twp2->options, "protected-pane")) {
+							has_protected = 1;
+							break;
+						}
+					}
+					if (has_protected)
+						continue;
 					server_kill_window(loop->window, 0);
 					found++;
 					break;
@@ -103,6 +113,16 @@ cmd_kill_window_exec(struct cmd *self, struct cmdq_item *item)
 
 		server_renumber_all();
 		return (CMD_RETURN_NORMAL);
+	}
+
+	{
+		struct window_pane *twp;
+		TAILQ_FOREACH(twp, &w->panes, entry) {
+			if (options_get_number(twp->options, "protected-pane")) {
+				cmdq_error(item, "window contains protected panes");
+				return (CMD_RETURN_ERROR);
+			}
+		}
 	}
 
 	server_kill_window(wl->window, 1);

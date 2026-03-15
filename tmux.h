@@ -1214,6 +1214,7 @@ struct window_pane {
 #define PANE_THEMECHANGED 0x2000
 #define PANE_UNSEENCHANGES 0x4000
 #define PANE_REDRAWSCROLLBAR 0x8000
+#define PANE_PROTECTED 0x10000
 
 	u_int		 sb_slider_y;
 	u_int		 sb_slider_h;
@@ -3022,6 +3023,7 @@ void	 server_renumber_all(void);
 int	 server_link_window(struct session *,
 	     struct winlink *, struct session *, int, int, int, char **);
 void	 server_unlink_window(struct session *, struct winlink *);
+void	 server_respawn_pane(struct window_pane *);
 void	 server_destroy_pane(struct window_pane *, int);
 void	 server_destroy_session(struct session *);
 void	 server_check_unattached(void);

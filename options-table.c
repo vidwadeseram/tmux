@@ -1424,6 +1424,14 @@ const struct options_table_entry options_table[] = {
 		  "remain-on-exit is enabled."
 	},
 
+	{ .name = "protected-pane",
+	  .type = OPTIONS_TABLE_FLAG,
+	  .scope = OPTIONS_TABLE_WINDOW|OPTIONS_TABLE_PANE,
+	  .default_num = 0,
+	  .text = "Whether a pane is protected from being killed and "
+		  "auto-respawns its command on exit."
+	},
+
 	{ .name = "scroll-on-clear",
 	  .type = OPTIONS_TABLE_FLAG,
 	  .scope = OPTIONS_TABLE_WINDOW|OPTIONS_TABLE_PANE,

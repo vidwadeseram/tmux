@@ -54,12 +54,19 @@ cmd_kill_pane_exec(struct cmd *self, struct cmdq_item *item)
 		TAILQ_FOREACH_SAFE(loopwp, &wl->window->panes, entry, tmpwp) {
 			if (loopwp == wp)
 				continue;
+			if (options_get_number(loopwp->options, "protected-pane"))
+				continue;
 			server_client_remove_pane(loopwp);
 			layout_close_pane(loopwp);
 			window_remove_pane(wl->window, loopwp);
 		}
 		server_redraw_window(wl->window);
 		return (CMD_RETURN_NORMAL);
+	}
+
+	if (options_get_number(wp->options, "protected-pane")) {
+		cmdq_error(item, "pane is protected");
+		return (CMD_RETURN_ERROR);
 	}
 
 	server_kill_pane(wp);
